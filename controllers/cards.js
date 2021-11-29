@@ -1,10 +1,10 @@
-const Card = require("../models/card");
-const { serverError, badRequest, notFound } = require("../utils/const");
+const Card = require('../models/card');
+const { serverError, badRequest, notFound } = require('../utils/const');
 
 const getCards = (req, res) => {
   Card.find({})
     .then((cards) => res.send(cards))
-    .catch(() => res.status(500).send({ serverError }));
+    .catch(() => res.status(serverError.status).send({ message: serverError.message }));
 };
 
 const createCard = (req, res) => {
@@ -13,12 +13,10 @@ const createCard = (req, res) => {
   return Card.create({ name, link, owner })
     .then((card) => res.send({ data: card }))
     .catch((err) => {
-      if (err.name === "ValidationError") {
-        return res.status(400).send({
-          badRequest,
-        });
+      if (err.name === 'ValidationError') {
+        return res.status(badRequest.status).send({ message: badRequest.message });
       }
-      return res.status(500).send({ serverError });
+      return res.status(serverError.status).send({ message: serverError.message });
     });
 };
 
@@ -26,17 +24,15 @@ const deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.id)
     .then((card) => {
       if (!card) {
-        return res.status(404).send({ notFound });
+        return res.status(notFound.status).send({ message: notFound.message });
       }
       return res.send({ data: card });
     })
     .catch((err) => {
-      if (err.name === "CastError") {
-        return res.status(400).send({
-          badRequest,
-        });
+      if (err.name === 'CastError') {
+        return res.status(badRequest.status).send({ message: badRequest.message });
       }
-      return res.status(500).send({ serverError });
+      return res.status(serverError.status).send({ message: serverError.message });
     });
 };
 
@@ -44,21 +40,19 @@ const putLike = (req, res) => {
   Card.findByIdAndUpdate(
     req.params.id,
     { $addToSet: { likes: req.user._id } },
-    { new: true }
+    { new: true },
   )
     .then((card) => {
       if (!card) {
-        return res.status(404).send({ notFound });
+        return res.status(notFound.status).send({ message: notFound.message });
       }
       return res.send(card);
     })
     .catch((err) => {
-      if (err.name === "CastError") {
-        return res.status(400).send({
-          badRequest,
-        });
+      if (err.name === 'CastError') {
+        return res.status(badRequest.status).send({ message: badRequest.message });
       }
-      return res.status(500).send({ serverError });
+      return res.status(serverError.status).send({ message: serverError.message });
     });
 };
 
@@ -66,21 +60,19 @@ const deleteLike = (req, res) => {
   Card.findByIdAndUpdate(
     req.params.id,
     { $pull: { likes: req.user._id } },
-    { new: true }
+    { new: true },
   )
     .then((card) => {
       if (!card) {
-        return res.status(404).send({ notFound });
+        return res.status(notFound.status).send({ message: notFound.message });
       }
       return res.send(card);
     })
     .catch((err) => {
-      if (err.name === "CastError") {
-        return res.status(400).send({
-          badRequest,
-        });
+      if (err.name === 'CastError') {
+        return res.status(badRequest.status).send({ message: badRequest.message });
       }
-      return res.status(500).send({ serverError });
+      return res.status(serverError.status).send({ message: serverError.message });
     });
 };
 

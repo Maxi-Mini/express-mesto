@@ -1,13 +1,16 @@
 const serverError = {
-  message: "Произошла ошибка",
+  message: 'Произошла ошибка',
+  status: '500',
 };
 
 const badRequest = {
-  message: "Переданы некорректные данные",
+  message: 'Произошла ошибка',
+  status: '400',
 };
 
 const notFound = {
-  message: "Переданы несуществующие данные",
+  message: 'Переданы несуществующие данные',
+  status: '404',
 };
 
 module.exports = {
