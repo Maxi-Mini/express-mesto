@@ -19,13 +19,13 @@ mongoose
   .then(() => console.log('mongo connected'))
   .catch((err) => console.log(err));
 
-app.use((req, res, next) => {
-  req.user = {
-    _id: '61a0c01cd9aa1b7317c4cd79',
-  };
+// app.use((req, res, next) => {
+//   req.user = {
+//     _id: '61a0c01cd9aa1b7317c4cd79',
+//   };
 
-  next();
-});
+//   next();
+// });
 
 app.use('/', usersRouter);
 app.use('/', cardsRouter);
