@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const usersRouter = require('./routes/users');
 const cardsRouter = require('./routes/cards');
 const notFound = require('./utils/const');
+const { login, createUser } = require('./controllers/users');
 
 const { PORT = 3000 } = process.env;
 const app = express();
@@ -26,6 +27,9 @@ mongoose
 
 //   next();
 // });
+
+app.post('/signin', login);
+app.post('/signup', createUser);
 
 app.use('/', usersRouter);
 app.use('/', cardsRouter);

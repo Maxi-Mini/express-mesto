@@ -4,13 +4,13 @@ const User = require('../models/user');
 
 const { serverError, badRequest, notFound } = require('../utils/const');
 
-const getUsers = (req, res) => {
+const getUsers = (req, res, next) => {
   User.find({})
     .then((users) => res.send(users))
     .catch(() => res.status(serverError.status).send({ message: serverError.message }));
 };
 
-const getUserId = (req, res) => {
+const getUserId = (req, res, next) => {
   User.findById(req.params.id)
     .then((user) => {
       if (!user) {
@@ -26,7 +26,7 @@ const getUserId = (req, res) => {
     });
 };
 
-const createUser = (req, res) => {
+const createUser = (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
@@ -43,7 +43,7 @@ const createUser = (req, res) => {
     });
 };
 
-const updateUser = (req, res) => {
+const updateUser = (req, res, next) => {
   const { id } = req.user._id;
   const { name, about } = req.body;
   User.findByIdAndUpdate(
@@ -65,7 +65,7 @@ const updateUser = (req, res) => {
     });
 };
 
-const updateAvatar = (req, res) => {
+const updateAvatar = (req, res, next) => {
   const { id } = req.user._id;
   const { avatar } = req.body;
   User.findByIdAndUpdate(id, { avatar }, { new: true, runValidators: true })
@@ -85,7 +85,6 @@ const updateAvatar = (req, res) => {
 
 const login = (req, res, next) => {
   const { email, password } = req.body;
-
   User.findUserByCredentials(email, password)
     .then((user) => {
       const token = jwt.sign(
@@ -93,7 +92,6 @@ const login = (req, res, next) => {
         'some-secret-key',
         { expiresIn: '7d' },
       );
-
       res.status(200)
         .cookie('jwt', token, {
           maxAge: '7d',
@@ -111,4 +109,5 @@ module.exports = {
   createUser,
   updateUser,
   updateAvatar,
+  login,
 };
