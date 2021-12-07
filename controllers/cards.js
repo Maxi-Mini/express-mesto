@@ -17,40 +17,21 @@ const createCard = (req, res, next) => {
     .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        throw new BadRequestError('Переданы некорректные данные');
+        next(new BadRequestError('Переданы некорректные данные'));
+      } else {
+        next(err);
       }
-    })
-    .catch(next);
+    });
 };
-
-// const deleteCard = (req, res, next) => {
-//   Card.findById(req.params.id)
-//     .then((card) => {
-//       if (!card) {
-//         throw new NotFoundError('Карточка с таким _id не найдена');
-//       }
-//       if (card.owner._id.toString() === req.user._id) {
-//         Card.findByIdAndRemove(req.params.id).then((card) => {
-//           res.send(card);
-//         });
-//       }
-//     })
-//     .catch((err) => {
-//       if (err.name === 'CastError') {
-//         throw new BadRequestError('Переданы некорректные данные');
-//       }
-//     })
-//     .catch(next);
-// };
 
 const deleteCard = (req, res, next) => {
   Card.findById(req.params.id).then((card) => {
     if (!card) {
-      throw new NotFoundError('Карточка с таким _id не найдена');
+      next(new NotFoundError('Карточка с таким _id не найдена'));
     }
 
     if (card.owner._id.toString() !== req.user._id) {
-      throw new ForbiddenError('Нельзя удалять карточки других пользователей');
+      next(new ForbiddenError('Нельзя удалять карточки других пользователей'));
     }
 
     Card.findByIdAndRemove(req.params.id)
@@ -60,10 +41,11 @@ const deleteCard = (req, res, next) => {
       })
       .catch((err) => {
         if (err.name === 'CastError') {
-          throw new BadRequestError('Неправильный id');
+          next(new BadRequestError('Неправильный id'));
+        } else {
+          next(err);
         }
-      })
-      .catch(next);
+      });
   });
 };
 
@@ -75,16 +57,17 @@ const putLike = (req, res, next) => {
   )
     .then((card) => {
       if (!card) {
-        throw new NotFoundError('Карточка с таким _id не найдена');
+        next(new NotFoundError('Карточка с таким _id не найдена'));
       }
       return res.send(card);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        throw new BadRequestError('Переданы некорректные данные');
+        next(new BadRequestError('Переданы некорректные данные'));
+      } else {
+        next(err);
       }
-    })
-    .catch(next);
+    });
 };
 
 const deleteLike = (req, res, next) => {
@@ -95,16 +78,17 @@ const deleteLike = (req, res, next) => {
   )
     .then((card) => {
       if (!card) {
-        throw new NotFoundError('Карточка с таким _id не найдена');
+        next(new NotFoundError('Карточка с таким _id не найдена'));
       }
       return res.send(card);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        throw new BadRequestError('Переданы некорректные данные');
+        next(new BadRequestError('Переданы некорректные данные'));
+      } else {
+        next(err);
       }
-    })
-    .catch(next);
+    });
 };
 
 module.exports = {

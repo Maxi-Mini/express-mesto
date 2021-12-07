@@ -23,9 +23,10 @@ const getUserId = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        throw new BadRequestError('Переданы некорректные данные');
+        next(new BadRequestError('Переданы некорректные данные'));
+      } else {
+        next(err);
       }
-      return next(err);
     });
 };
 
@@ -48,12 +49,14 @@ const createUser = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        throw new BadRequestError('Переданы некорректные данные');
-      } else if (err.name === 'MongoError' && err.code === 11000) {
-        throw new ConflictError('Такой пользователь уже существует');
+        next(new BadRequestError('Переданы некорректные данные'));
       }
-    })
-    .catch(next);
+      if (err.code === 11000) {
+        next(new ConflictError('Такой пользователь уже существует'));
+      } else {
+        next(err);
+      }
+    });
 };
 
 const updateUser = (req, res, next) => {
@@ -66,15 +69,17 @@ const updateUser = (req, res, next) => {
   )
     .then((user) => {
       if (!user) {
-        throw new NotFoundError('Пользователь по указанному id не найден');
+        next(new NotFoundError('Пользователь по указанному id не найден'));
       }
       return res.send(user);
     })
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
-        throw new BadRequestError('Переданы некорректные данные');
+        next(new BadRequestError('Переданы некорректные данные'));
+      } else {
+        next(err);
       }
-    }).catch(next);
+    });
 };
 
 const updateAvatar = (req, res, next) => {
@@ -83,29 +88,29 @@ const updateAvatar = (req, res, next) => {
   User.findByIdAndUpdate(id, { avatar }, { new: true, runValidators: true })
     .then((user) => {
       if (!user) {
-        throw new NotFoundError('Пользователь по указанному id не найден');
+        next(new NotFoundError('Пользователь по указанному id не найден'));
       }
       return res.send(user);
     })
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
-        throw new BadRequestError('Переданы некорректные данные');
+        next(new BadRequestError('Переданы некорректные данные'));
+      } else {
+        next(err);
       }
-    }).catch(next);
+    });
 };
 
 const login = (req, res, next) => {
   const { email, password } = req.body;
   User.findUserByCredentials(email, password)
     .then((user) => {
-      const token = jwt.sign(
-        { _id: user._id },
-        'some-secret-key',
-        { expiresIn: '7d' },
-      );
+      const token = jwt.sign({ _id: user._id }, 'some-secret-key', {
+        expiresIn: 604800,
+      });
       res
         .cookie('jwt', token, {
-          maxAge: '7d',
+          maxAge: 604800,
           httpOnly: true,
           sameSite: true,
         })
@@ -118,15 +123,17 @@ const getUser = (req, res, next) => {
   User.findById(req.user._id)
     .then((user) => {
       if (!user) {
-        throw new NotFoundError('Пользователь по указанному _id не найден!');
+        next(new NotFoundError('Пользователь по указанному _id не найден!'));
       }
       return res.send(user);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        throw new BadRequestError('Переданы некорректные данные');
+        next(new BadRequestError('Переданы некорректные данные'));
+      } else {
+        next(err);
       }
-    }).catch(next);
+    });
 };
 
 module.exports = {

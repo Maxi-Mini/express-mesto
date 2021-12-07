@@ -1,6 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const { celebrate, Joi } = require('celebrate');
+const { celebrate, Joi, errors } = require('celebrate');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const usersRouter = require('./routes/users');
@@ -54,11 +54,13 @@ app.post(
 app.use('/', auth, usersRouter);
 app.use('/', auth, cardsRouter);
 
-app.use(ServerError);
-
 app.all('*', () => {
   throw new NotFoundError('Запрашиваемый ресурс не найден');
 });
+
+app.use(errors());
+
+app.use(ServerError);
 
 app.listen(PORT, () => {
   console.log(`app listening on port ${PORT}`);
