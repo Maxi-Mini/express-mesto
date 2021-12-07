@@ -1,16 +1,21 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const { celebrate, Joi } = require('celebrate');
+const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const usersRouter = require('./routes/users');
 const cardsRouter = require('./routes/cards');
-const notFound = require('./utils/const');
 const { login, createUser } = require('./controllers/users');
+const ServerError = require('./middlewares/ServerError');
+const auth = require('./middlewares/auth');
+const NotFoundError = require('./errors/NotFoundError');
 
 const { PORT = 3000 } = process.env;
 const app = express();
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 mongoose
   .connect('mongodb://localhost:27017/mestodb', {
@@ -20,22 +25,39 @@ mongoose
   .then(() => console.log('mongo connected'))
   .catch((err) => console.log(err));
 
-// app.use((req, res, next) => {
-//   req.user = {
-//     _id: '61a0c01cd9aa1b7317c4cd79',
-//   };
+app.post(
+  '/signin',
+  celebrate({
+    body: Joi.object().keys({
+      email: Joi.string().required().email(),
+      password: Joi.string().required().min(8),
+    }),
+  }),
+  login,
+);
+app.post(
+  '/signup',
+  celebrate({
+    body: Joi.object().keys({
+      email: Joi.string().required().email(),
+      password: Joi.string().required().min(8),
+      name: Joi.string().min(2).max(30),
+      about: Joi.string().min(2).max(30),
+      avatar: Joi.string().pattern(
+        /((http|https):\/\/)?(www\.)?[\w\-~]+(\.[\w\-~]+)+(\/[\w\-~]*)*(#[\w-]*)?(\?.*)?/,
+      ),
+    }),
+  }),
+  createUser,
+);
 
-//   next();
-// });
+app.use('/', auth, usersRouter);
+app.use('/', auth, cardsRouter);
 
-app.post('/signin', login);
-app.post('/signup', createUser);
+app.use(ServerError);
 
-app.use('/', usersRouter);
-app.use('/', cardsRouter);
-
-app.all('*', (req, res) => {
-  res.status(notFound.status).send({ message: notFound.message });
+app.all('*', () => {
+  throw new NotFoundError('Запрашиваемый ресурс не найден');
 });
 
 app.listen(PORT, () => {
