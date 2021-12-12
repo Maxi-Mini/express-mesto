@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const { celebrate, Joi, errors } = require('celebrate');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
+const { requestLogger, errorLogger } = require('./middlewares/Logger');
 const usersRouter = require('./routes/users');
 const cardsRouter = require('./routes/cards');
 const { login, createUser } = require('./controllers/users');
@@ -51,12 +52,16 @@ app.post(
   createUser,
 );
 
+app.use(requestLogger);
+
 app.use('/', auth, usersRouter);
 app.use('/', auth, cardsRouter);
 
 app.all('*', () => {
   throw new NotFoundError('Запрашиваемый ресурс не найден');
 });
+
+app.use(errorLogger);
 
 app.use(errors());
 
